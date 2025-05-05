@@ -78,7 +78,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           ),
                         ),
                         const SizedBox(height: 30),
-
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -98,7 +97,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           ),
                         ],
                         const SizedBox(height: 20),
-
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -110,19 +108,18 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child:
-                                _isLoading
-                                    ? CircularProgressIndicator(
+                            child: _isLoading
+                                ? CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : Text(
+                                    "Envoyer",
+                                    style: TextStyle(
+                                      fontSize: 16,
                                       color: Colors.white,
-                                    )
-                                    : Text(
-                                      "Envoyer",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                  ),
                           ),
                         ),
                       ],

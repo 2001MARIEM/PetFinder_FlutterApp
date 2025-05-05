@@ -6,9 +6,8 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Accueil'),
-        backgroundColor:
-            Colors
-                .deepOrange, // ou utilise AppColors.primary si tu veux rester cohérent
+        backgroundColor: Colors
+            .deepOrange, // ou utilise AppColors.primary si tu veux rester cohérent
       ),
       body: Center(
         child: Text(

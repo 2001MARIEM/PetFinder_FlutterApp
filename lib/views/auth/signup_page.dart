@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:html' as html;
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,27 +40,15 @@ class _SignupPageState extends State<SignupPage> {
   );
 
   Future<void> _pickImage() async {
-    if (kIsWeb) {
-      final input = html.FileUploadInputElement()..accept = 'image/*';
-      input.click();
-      input.onChange.listen((event) async {
-        final file = input.files!.first;
-        final reader = html.FileReader();
-        reader.readAsArrayBuffer(file);
-        await reader.onLoad.first;
-        setState(() {
-          _imageBytes = reader.result as Uint8List;
-        });
+    final picker = ImagePicker();
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _imageBytes = bytes;
       });
-    } else {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _imageBytes = bytes;
-        });
-      }
     }
   }
 
@@ -96,11 +82,11 @@ class _SignupPageState extends State<SignupPage> {
     try {
       await _uploadImageToImgBB();
 
-      final UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
       final uid = userCredential.user!.uid;
 
@@ -171,18 +157,16 @@ class _SignupPageState extends State<SignupPage> {
                             child: CircleAvatar(
                               radius: 45,
                               backgroundColor: Colors.grey[300],
-                              backgroundImage:
-                                  _imageBytes != null
-                                      ? MemoryImage(_imageBytes!)
-                                      : null,
-                              child:
-                                  _imageBytes == null
-                                      ? Icon(
-                                        Icons.camera_alt,
-                                        size: 30,
-                                        color: Colors.grey[700],
-                                      )
-                                      : null,
+                              backgroundImage: _imageBytes != null
+                                  ? MemoryImage(_imageBytes!)
+                                  : null,
+                              child: _imageBytes == null
+                                  ? Icon(
+                                      Icons.camera_alt,
+                                      size: 30,
+                                      color: Colors.grey[700],
+                                    )
+                                  : null,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -190,21 +174,12 @@ class _SignupPageState extends State<SignupPage> {
                             "Ajouter une photo",
                             style: TextStyle(color: Colors.grey[700]),
                           ),
-
                           const SizedBox(height: 25),
                           _buildField(
-                            "Nom",
-                            _nomController,
-                            Icons.person,
-                            false,
-                          ),
+                              "Nom", _nomController, Icons.person, false),
                           const SizedBox(height: 10),
-                          _buildField(
-                            "Prénom",
-                            _prenomController,
-                            Icons.person_outline,
-                            false,
-                          ),
+                          _buildField("Prénom", _prenomController,
+                              Icons.person_outline, false),
                           const SizedBox(height: 10),
                           _buildField(
                             "Téléphone",
@@ -212,11 +187,8 @@ class _SignupPageState extends State<SignupPage> {
                             Icons.phone,
                             false,
                             keyboard: TextInputType.phone,
-                            validator:
-                                (value) =>
-                                    value!.length < 8
-                                        ? "Numéro invalide"
-                                        : null,
+                            validator: (value) =>
+                                value!.length < 8 ? "Numéro invalide" : null,
                           ),
                           const SizedBox(height: 10),
                           _buildField(
@@ -225,11 +197,9 @@ class _SignupPageState extends State<SignupPage> {
                             Icons.email,
                             false,
                             keyboard: TextInputType.emailAddress,
-                            validator:
-                                (value) =>
-                                    !_emailRegex.hasMatch(value!)
-                                        ? "Email invalide"
-                                        : null,
+                            validator: (value) => !_emailRegex.hasMatch(value!)
+                                ? "Email invalide"
+                                : null,
                           ),
                           const SizedBox(height: 10),
                           _buildPasswordField(
@@ -237,15 +207,12 @@ class _SignupPageState extends State<SignupPage> {
                             _passwordController,
                             Icons.lock,
                             obscure: _obscurePassword,
-                            toggle:
-                                () => setState(
-                                  () => _obscurePassword = !_obscurePassword,
-                                ),
-                            validator:
-                                (value) =>
-                                    !_passwordRegex.hasMatch(value!)
-                                        ? "Min. 6 caractères, maj., min., chiffre, spécial"
-                                        : null,
+                            toggle: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
+                            validator: (value) => !_passwordRegex
+                                    .hasMatch(value!)
+                                ? "Min. 6 caractères, maj., min., chiffre, spécial"
+                                : null,
                           ),
                           const SizedBox(height: 10),
                           _buildPasswordField(
@@ -253,17 +220,13 @@ class _SignupPageState extends State<SignupPage> {
                             _confirmPasswordController,
                             Icons.lock_outline,
                             obscure: _obscureConfirmPassword,
-                            toggle:
-                                () => setState(
-                                  () =>
-                                      _obscureConfirmPassword =
-                                          !_obscureConfirmPassword,
-                                ),
-                            validator:
-                                (value) =>
-                                    value != _passwordController.text
-                                        ? "Les mots de passe ne correspondent pas"
-                                        : null,
+                            toggle: () => setState(() =>
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword),
+                            validator: (value) =>
+                                value != _passwordController.text
+                                    ? "Les mots de passe ne correspondent pas"
+                                    : null,
                           ),
                           const SizedBox(height: 15),
                           if (_errorMessage != null)
@@ -277,27 +240,24 @@ class _SignupPageState extends State<SignupPage> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _signUp,
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child:
-                                  _isLoading
-                                      ? CircularProgressIndicator(
+                              child: _isLoading
+                                  ? CircularProgressIndicator(
+                                      color: Colors.white)
+                                  : Text(
+                                      "S'inscrire",
+                                      style: TextStyle(
+                                        fontSize: 16,
                                         color: Colors.white,
-                                      )
-                                      : Text(
-                                        "S'inscrire",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        fontWeight: FontWeight.bold,
                                       ),
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 15),

@@ -119,19 +119,18 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child:
-                                _isLoading
-                                    ? CircularProgressIndicator(
+                            child: _isLoading
+                                ? CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : Text(
+                                    "Connexion",
+                                    style: TextStyle(
+                                      fontSize: 16,
                                       color: Colors.white,
-                                    )
-                                    : Text(
-                                      "Connexion",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                  ),
                           ),
                         ),
 
