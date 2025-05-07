@@ -4,7 +4,7 @@ class UserModel {
   final String prenom;
   final String telephone;
   final String email;
-  final String image;
+  final String photoUrl; // ✅ Change "image" → "photoUrl"
 
   UserModel({
     required this.uid,
@@ -12,10 +12,9 @@ class UserModel {
     required this.prenom,
     required this.telephone,
     required this.email,
-    required this.image,
+    required this.photoUrl,
   });
 
-  // Convertir une Map (Firestore) en UserModel
   factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
     return UserModel(
       uid: documentId,
@@ -23,18 +22,17 @@ class UserModel {
       prenom: map['prenom'] ?? '',
       telephone: map['telephone'] ?? '',
       email: map['email'] ?? '',
-      image: map['image'] ?? '',
+      photoUrl: map['photoUrl'] ?? '', // ✅ CORRECT FIELD
     );
   }
 
-  // Convertir UserModel en Map (pour Firestore)
   Map<String, dynamic> toMap() {
     return {
       'nom': nom,
       'prenom': prenom,
       'telephone': telephone,
       'email': email,
-      'image': image,
+      'photoUrl': photoUrl,
     };
   }
 }
