@@ -17,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isLoading = false;
   String? _errorMessage;
+  bool _obscurePassword = true;
 
   Future<void> _signIn() async {
     setState(() {
@@ -86,15 +87,27 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 15),
 
-                        // Password
+                        // Password with toggle visibility
                         TextField(
                           controller: _passwordController,
-                          obscureText: true,
+                          obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             prefixIcon: Icon(Icons.lock),
                             labelText: "Mot de passe",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                             ),
                           ),
                         ),
@@ -120,9 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             child: _isLoading
-                                ? CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
+                                ? CircularProgressIndicator(color: Colors.white)
                                 : Text(
                                     "Connexion",
                                     style: TextStyle(
@@ -153,33 +164,34 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
 
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SignupPage(),
-                              ),
-                            );
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: "Pas encore inscrit ? ",
+                        // Seul "Créer un compte" est cliquable
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Pas encore inscrit ? ",
                               style: TextStyle(
                                 color: AppColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
-                              children: [
-                                TextSpan(
-                                  text: "Créer un compte",
-                                  style: TextStyle(
-                                    color: AppColors.darkRed,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
                             ),
-                          ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => SignupPage()),
+                                );
+                              },
+                              child: Text(
+                                "Créer un compte",
+                                style: TextStyle(
+                                  color: AppColors.darkRed,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -187,7 +199,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              // ✅ Image tout en bas
+              // ✅ Image en bas
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: Image.asset(

@@ -12,7 +12,7 @@ class PetDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-          AppColors.darkRed.withOpacity(0.4), // Fond légèrement teinté
+          AppColors.primary.withOpacity(0.4), // Fond légèrement teinté
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -20,7 +20,6 @@ class PetDetailPage extends StatelessWidget {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-         
       ),
       body: Column(
         children: [
@@ -96,7 +95,6 @@ class PetDetailPage extends StatelessWidget {
                             color: AppColors.textPrimary,
                           ),
                         ),
-                         
                       ],
                     ),
 
@@ -119,7 +117,7 @@ class PetDetailPage extends StatelessWidget {
                           child: _buildCharacteristicBox(
                             animal.age,
                             "Âge",
-                             AppColors.primary.withOpacity(0.1),
+                            AppColors.primary.withOpacity(0.1),
                           ),
                         ),
                         SizedBox(width: 12),
@@ -148,7 +146,7 @@ class PetDetailPage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _buildCharacteristicBox(
-                             "${animal.category.toString()}",
+                            "${animal.category.toString()}",
                             "Catégorie",
                             AppColors.accent.withOpacity(0.2),
                           ),
@@ -164,7 +162,7 @@ class PetDetailPage extends StatelessWidget {
                         SizedBox(width: 12),
                         Expanded(
                           child: _buildCharacteristicBox(
-                              "${animal.race?.toString() ?? 'Non spécifiée'}",
+                            "${animal.race?.toString() ?? 'Non spécifiée'}",
                             "Race",
                             AppColors.accent.withOpacity(0.2),
                           ),
@@ -229,7 +227,7 @@ class PetDetailPage extends StatelessWidget {
                         SizedBox(width: 12),
 
                         // Bouton Chat
-                       // Dans la partie du bouton de chat de PetDetailPage
+                        // Dans la partie du bouton de chat de PetDetailPage
                         Expanded(
                           flex: 1,
                           child: ElevatedButton(
