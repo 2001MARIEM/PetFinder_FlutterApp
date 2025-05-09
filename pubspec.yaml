@@ -11,13 +11,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  provider: ^6.0.5
+  shared_preferences: ^2.2.0
   cloud_firestore: ^5.6.7
   firebase_auth: ^5.5.3
   firebase_core: ^3.13.0
   firebase_messaging: ^15.2.5
   firebase_storage: ^12.4.5
   geolocator: ^14.0.0
+  lottie: ^2.6.0
+  image_picker: ^1.0.7
+  geocoding: ^2.1.0
 
   flutter_facebook_auth: ^7.1.2
   flutter_svg: ^2.1.0
@@ -32,3 +36,9 @@ flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/lottie/splash.json
+    - assets/images/pet_login.png
+    - assets/images/pet_signup.png
+    - assets/images/start_image.png
