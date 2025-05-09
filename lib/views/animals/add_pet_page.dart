@@ -248,18 +248,7 @@ class _AddPetPageState extends State<AddPetPage> {
               ),
               SizedBox(height: 15),
 
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 3,
-                decoration:
-                    _buildInputDecoration("Description", Icons.description),
-                validator: (value) =>
-                    value!.isEmpty ? 'Ce champ est requis' : null,
-              ),
-              SizedBox(height: 25),
-              // Après le champ Description et avant le bouton de soumission
-              SizedBox(height: 15),
+             
 
 // Race
               TextFormField(
@@ -299,6 +288,18 @@ class _AddPetPageState extends State<AddPetPage> {
                 },
               ),
               SizedBox(height: 25),
+               // Description
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration:
+                    _buildInputDecoration("Description", Icons.description),
+                validator: (value) =>
+                    value!.isEmpty ? 'Ce champ est requis' : null,
+              ),
+              SizedBox(height: 25),
+              // Après le champ Description et avant le bouton de soumission
+              SizedBox(height: 15),
 
 
               ElevatedButton.icon(

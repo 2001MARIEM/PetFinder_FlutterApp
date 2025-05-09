@@ -28,13 +28,12 @@ class _ChatPageState extends State<ChatPage> {
   String? _chatId;
   bool _isTyping = false;
   Timer? _typingTimer;
+  StreamSubscription? _messagesSubscription;
 
   @override
   void initState() {
     super.initState();
-    _initChat().then((_) {
-      _markMessagesAsRead();
-    });
+    _initChat();
   }
 
   Future<void> _initChat() async {
@@ -108,6 +107,9 @@ class _ChatPageState extends State<ChatPage> {
           },
         });
       }
+
+      // Configuration d'un listener pour les nouveaux messages
+      _setupMessagesListener();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur: ${e.toString()}')),
@@ -117,6 +119,28 @@ class _ChatPageState extends State<ChatPage> {
         _isLoading = false;
       });
     }
+  }
+
+  // Nouvelle méthode pour configurer l'écouteur des messages
+  void _setupMessagesListener() {
+    // Annuler l'ancienne souscription si elle existe
+    _messagesSubscription?.cancel();
+
+    // Configurer une nouvelle souscription pour écouter les nouveaux messages
+    _messagesSubscription = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(_chatId)
+        .collection('messages')
+        .where('senderId',
+            isEqualTo: widget.ownerId) // Messages de l'autre utilisateur
+        .where('read', isEqualTo: false) // Messages non lus
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        // Si des messages non lus existent, les marquer comme lus
+        _markMessagesAsRead();
+      }
+    });
   }
 
   // Nouvelle méthode pour gérer l'état de frappe
@@ -137,8 +161,10 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  // Nouvelle méthode pour marquer les messages comme lus
+  // Méthode modifiée pour marquer les messages comme lus
   Future<void> _markMessagesAsRead() async {
+    if (_chatId == null || _currentUserId == null) return;
+
     try {
       // Obtenir tous les messages non lus envoyés par l'autre utilisateur
       final unreadMessages = await FirebaseFirestore.instance
@@ -148,6 +174,8 @@ class _ChatPageState extends State<ChatPage> {
           .where('senderId', isEqualTo: widget.ownerId)
           .where('read', isEqualTo: false)
           .get();
+
+      if (unreadMessages.docs.isEmpty) return; // Aucun message non lu à traiter
 
       // Marquer chaque message comme lu
       final batch = FirebaseFirestore.instance.batch();
@@ -196,7 +224,10 @@ class _ChatPageState extends State<ChatPage> {
         'lastMessageTime': FieldValue.serverTimestamp(),
         'lastMessageSenderId': _currentUserId, // Mise à jour
         'unreadCount.${widget.ownerId}': FieldValue.increment(1), // Mise à jour
+         // Assurez-vous que votre propre compteur est à 0 pour vos messages envoyés
+        'unreadCount.${_currentUserId}': 0,
       });
+      await _createMessageNotification(message);
 
       // Faire défiler vers le dernier message
       _scrollToBottom();
@@ -232,9 +263,49 @@ class _ChatPageState extends State<ChatPage> {
     _messageController.dispose();
     _scrollController.dispose();
     _typingTimer?.cancel();
+    _messagesSubscription?.cancel(); // Annuler la souscription aux messages
     super.dispose();
   }
+// Nouvelle méthode pour créer une notification de message
+  Future<void> _createMessageNotification(String messageText) async {
+    try {
+      // Éviter de créer une notification pour ses propres messages
+      if (_currentUserId == widget.ownerId) return;
 
+      // Récupérer les informations sur l'utilisateur actuel (expéditeur)
+      final currentUserDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
+
+      String senderName = 'Quelqu\'un';
+      if (currentUserDoc.exists) {
+        final userData = currentUserDoc.data() as Map<String, dynamic>?;
+        if (userData != null) {
+          senderName =
+              '${userData['prenom'] ?? ''} ${userData['nom'] ?? ''}'.trim();
+        }
+      }
+
+      // Créer la notification
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId':
+            widget.ownerId, // ID du destinataire qui recevra la notification
+        'title': 'Nouveau message',
+        'message':
+            '$senderName vous a envoyé: "${messageText.length > 30 ? messageText.substring(0, 27) + '...' : messageText}"',
+        'createdAt': FieldValue.serverTimestamp(),
+        'read': false,
+        'type': 'chat',
+        'relatedId': _chatId, // ID de la conversation
+        'animalId': widget.animal.id, // ID de l'animal concerné
+        'animalName': widget.animal.name, // Nom de l'animal
+        'senderId': _currentUserId // ID de l'expéditeur
+      });
+    } catch (e) {
+      print('Erreur lors de la création de la notification: $e');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -315,6 +386,9 @@ class _ChatPageState extends State<ChatPage> {
 
                       final messages = snapshot.data?.docs ?? [];
 
+                      // Marquer les messages comme lus chaque fois que nous voyons de nouveaux messages
+                      _markMessagesAsRead();
+
                       if (messages.isEmpty) {
                         return Center(
                           child: Column(
@@ -342,25 +416,30 @@ class _ChatPageState extends State<ChatPage> {
                       // Faire défiler vers le bas après le chargement des messages
                       _scrollToBottom();
 
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: EdgeInsets.all(16),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message =
-                              messages[index].data() as Map<String, dynamic>;
-                          final bool isMe =
-                              message['senderId'] == _currentUserId;
-                          final timestamp = message['timestamp'] as Timestamp?;
-                          final isRead = message['read'] ?? false;
+                      return GestureDetector(
+                        // Marquage des messages comme lus lors d'un appui sur l'écran
+                        onTap: _markMessagesAsRead,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: EdgeInsets.all(16),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message =
+                                messages[index].data() as Map<String, dynamic>;
+                            final bool isMe =
+                                message['senderId'] == _currentUserId;
+                            final timestamp =
+                                message['timestamp'] as Timestamp?;
+                            final isRead = message['read'] ?? false;
 
-                          return _buildMessageBubble(
-                            message: message['text'] ?? '',
-                            isMe: isMe,
-                            timestamp: timestamp,
-                            isRead: isRead,
-                          );
-                        },
+                            return _buildMessageBubble(
+                              message: message['text'] ?? '',
+                              isMe: isMe,
+                              timestamp: timestamp,
+                              isRead: isRead,
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

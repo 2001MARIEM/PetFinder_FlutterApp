@@ -75,8 +75,14 @@ void _showDeleteConfirmation(
                       child: Text('Erreur: ${snapshot.error.toString()}'));
                 }
 
-                final chatDocs = snapshot.data?.docs ?? [];
-
+               // Filtrer les documents pour ne garder que ceux avec un lastMessage non vide
+                final allDocs = snapshot.data?.docs ?? [];
+                final chatDocs = allDocs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final lastMessage = data['lastMessage'] as String?;
+                  return lastMessage != null && lastMessage.isNotEmpty;
+                }).toList();
+                
                 if (chatDocs.isEmpty) {
                   return Center(
                     child: Column(

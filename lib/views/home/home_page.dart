@@ -61,7 +61,47 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
+// Nouvelle méthode pour créer une notification de favori
+  Future<void> _createFavoriteNotification(
+      String ownerId, String animalId, String animalName) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return;
 
+      // Récupérer les informations sur l'utilisateur actuel
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      String userName = 'Quelqu\'un';
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>?;
+        if (userData != null) {
+          userName =
+              '${userData['prenom'] ?? ''} ${userData['nom'] ?? ''}'.trim();
+          if (userName.isEmpty) userName = 'Quelqu\'un';
+        }
+      }
+
+      // Créer la notification
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': ownerId, // ID du propriétaire de l'animal
+        'title': 'Nouvel intérêt',
+        'message': '$userName a ajouté votre animal $animalName à ses favoris',
+        'createdAt': FieldValue.serverTimestamp(),
+        'read': false,
+        'type': 'favorite',
+        'relatedId': animalId, // ID de l'animal
+        'animalId': animalId,
+        'animalName': animalName,
+        'senderId':
+            currentUser.uid // ID de l'utilisateur qui a ajouté le favori
+      });
+    } catch (e) {
+      print('Erreur lors de la création de la notification: $e');
+    }
+  }
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -159,13 +199,43 @@ class _HomePageState extends State<HomePage> {
         .doc(animalId);
 
     final isFav = await favRef.get();
-    if (isFav.exists) {
-      await favRef.delete();
-    } else {
-      await favRef.set({'addedAt': Timestamp.now()});
+     try {
+      if (isFav.exists) {
+        // Retirer des favoris
+        await favRef.delete();
+        // Optionnel : Vous pourriez aussi créer une notification "retrait des favoris" ici
+      } else {
+        // Ajouter aux favoris
+        await favRef.set({'addedAt': Timestamp.now()});
+
+        // Récupérer les informations sur l'animal pour la notification
+        final animalDoc = await FirebaseFirestore.instance
+            .collection('animals')
+            .doc(animalId)
+            .get();
+
+        if (animalDoc.exists) {
+          final animalData = animalDoc.data() as Map<String, dynamic>?;
+
+          if (animalData != null) {
+            final ownerId = animalData['ownerId'];
+            final animalName = animalData['name'] ?? 'animal';
+
+            // Éviter de notifier si l'utilisateur est le propriétaire de l'animal
+            if (ownerId != null && ownerId != uid) {
+              // Créer une notification pour le propriétaire de l'animal
+              await _createFavoriteNotification(ownerId, animalId, animalName);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Erreur lors de la gestion des favoris: $e');
+      // Vous pourriez également afficher un message d'erreur à l'utilisateur ici
     }
 
     setState(() {});
+
   }
 
   void _handleNavigation(int index) {
