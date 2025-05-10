@@ -987,12 +987,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Row(
                               children: [
-                                // Icon(
-                                   
-                                //       ? Icons.dark_mode
-                                //       : Icons.light_mode,
-                                //   color: AppColors.primary,
-                                // ),
+                                Icon(
+                                  Icons
+                                      .dark_mode, // Icône fixe pour le mode sombre
+                                  color: AppColors.primary,
+                                ),
                                 SizedBox(width: 12),
                                 Text(
                                   'Mode sombre',
@@ -1003,16 +1002,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               ],
                             ),
-                            // Switch(
-                            //   value:
-                            //       Provider.of<ThemeManager>(context).isDarkMode,
-                            //   onChanged: (_) {
-                            //     Provider.of<ThemeManager>(context,
-                            //             listen: false)
-                            //         .toggleTheme();
-                            //   },
-                            //   activeColor: AppColors.primary,
-                            // ),
+                             Switch(
+                              value: false, // Valeur fixe (toujours désactivé)
+                              onChanged:
+                                  null, // null signifie que le switch est désactivé
+                              activeColor: AppColors.primary,
+                            ),
                           ],
                         ),
                       ],
